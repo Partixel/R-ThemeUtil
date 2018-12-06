@@ -1,7 +1,5 @@
 local ThemeUtil = { }
 
-while not _G.S20Config and wait( ) do end
-
 local BoundUpdates = { }
 
 local ObjBoundUpdates = setmetatable( { }, { __newindex = function ( self, Key, Value )
@@ -436,7 +434,7 @@ ThemeUtil.AddDefaultColor( "ProgressColor", { Light = Color3.fromRGB( 255, 255, 
 
 ThemeUtil.AddDefaultColor( "SelectionColor", { Light = Color3.fromRGB( 105, 165, 255 ), Dark = Color3.fromRGB( 0, 100, 255 ) } )
 
-if _G.S20Config.DebugTheme then
+if _G.S20Config and _G.S20Config.DebugTheme then
 	
 	spawn( function ( )
 		
