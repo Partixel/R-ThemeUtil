@@ -226,13 +226,9 @@ function ThemeUtil.GetThemeFor( ... )
 		
 	end
 	
-	error( "ThemeUtil - GetColor failed for key " .. Keys[ 1 ] )
+	error( "ThemeUtil - GetThemeFor failed for key " .. Keys[ 1 ] )
 	
 end
-
------------- TODO REMOVE
-
-ThemeUtil.GetColor = ThemeUtil.GetThemeFor
 
 function ThemeUtil.ContrastTextStroke( Obj, Bkg )
 	
@@ -251,8 +247,6 @@ function ThemeUtil.ContrastTextStroke( Obj, Bkg )
 	local _, _, V = Color3.toHSV( Obj.TextColor3 )
 	
 	local _, _, V2 = Color3.toHSV( Bkg )
-	
-	--print( V, V2, math.abs( V2 - V ), Obj.Text )
 	
 	if Obj.Parent.ImageTransparency >= 1 then
 		
