@@ -148,6 +148,8 @@ function ThemeUtil.UpdateColor( Key, Value )
 	
 	ThemeUtil.Theme[ Key ] = Value
 	
+	Value = ThemeUtil.Theme[ Key ]
+	
 	for a, b in pairs( BoundUpdates ) do
 		
 		coroutine.wrap( function( )
