@@ -422,13 +422,13 @@ ThemeUtil.AddDefaultColor( "InvertedTextColor", { Light = Color3.fromRGB( 255, 2
 
 ThemeUtil.AddDefaultColor( "SecondaryTextColor", { Light = Color3.fromRGB( 100, 100, 100 ), Dark = Color3.fromRGB( 170, 170, 170 ), OLEDLight = Color3.fromRGB( 70, 70, 70 ), OLEDDark = Color3.fromRGB( 200, 200, 200 ) } )
 
-ThemeUtil.AddDefaultColor( "PositiveColor", { Light =  Color3.fromRGB( 0, 150, 0 ) } )
+ThemeUtil.AddDefaultColor( "PositiveColor", { Light = Color3.fromRGB( 100, 180, 100 ), Dark = Color3.fromRGB( 0, 150, 0 ) } )
 
 ThemeUtil.AddDefaultColor( "NegativeColor", { Light = Color3.fromRGB( 255, 0, 0 ) } )
 
 ThemeUtil.AddDefaultColor( "ProgressColor", { Light = Color3.fromRGB( 255, 255, 50 ) } )
 
-ThemeUtil.AddDefaultColor( "SelectionColor", { Light = Color3.fromRGB( 105, 165, 255 ), Dark = Color3.fromRGB( 0, 100, 255 ) } )
+ThemeUtil.AddDefaultColor( "SelectionColor", { Light = Color3.fromRGB( 105, 145, 255 ), Dark = Color3.fromRGB( 0, 100, 255 ) } )
 
 if _G.S20Config and _G.S20Config.DebugTheme then
 	
