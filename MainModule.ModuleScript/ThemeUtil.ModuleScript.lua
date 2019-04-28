@@ -144,7 +144,7 @@ function ThemeUtil.UnbindUpdate( Obj, Properties )
 	
 end
 
-function ThemeUtil.UpdateColor( Key, Value )
+function ThemeUtil.UpdateThemeFor( Key, Value )
 	
 	ThemeUtil.Theme[ Key ] = Value
 	
@@ -197,6 +197,8 @@ function ThemeUtil.UpdateColor( Key, Value )
 							warn( "ThemeUtil - Object Bound Update " .. a:GetFullName( ) .. " errored for '" .. d[ e ] .. "' for the property '" .. c .. "\n" .. Error .. "\n" .. debug.traceback( ) )
 							
 						end
+						
+						break
 						
 					elseif ThemeUtil.Theme[ d[ e ] ] then
 						
@@ -398,7 +400,9 @@ end
 
 ThemeUtil.SetBaseTheme( "Dark" )
 
-function ThemeUtil.AddDefaultColor( Key, Themes )
+function ThemeUtil.AddDefaultThemeFor( Key, Themes )
+	
+	if not Themes.Light then error( Key .. " cannot be added as a default theme because it didn't include a value for the Light theme" ) end
 	
 	for a, b in pairs( Themes ) do
 		
@@ -410,43 +414,51 @@ function ThemeUtil.AddDefaultColor( Key, Themes )
 	
 end
 
-ThemeUtil.AddDefaultColor( "Background", { Light = Color3.fromRGB( 255, 255, 255 ), Dark = Color3.fromRGB( 46, 46, 46 ), OLEDDark = Color3.fromRGB( 0, 0, 0 ) } )
+ThemeUtil.AddDefaultThemeFor( "Background", { Light = Color3.fromRGB( 255, 255, 255 ), Dark = Color3.fromRGB( 46, 46, 46 ), OLEDDark = Color3.fromRGB( 0, 0, 0 ) } )
 
-ThemeUtil.AddDefaultColor( "InvertedBackground", { Light = Color3.fromRGB( 46, 46, 46 ), Dark = Color3.fromRGB( 255, 255, 255 ), OLEDLight = Color3.fromRGB( 0, 0, 0 ) } )
+ThemeUtil.AddDefaultThemeFor( "Background_Transparency", { Light = 0 } )
 
-ThemeUtil.AddDefaultColor( "SecondaryBackground", { Light = Color3.fromRGB( 180, 180, 180 ), Dark = Color3.fromRGB( 77, 77, 77 ), OLEDLight = Color3.fromRGB( 255, 255, 255 ), OLEDDark = Color3.fromRGB( 0, 0, 0 ) } )
+ThemeUtil.AddDefaultThemeFor( "InvertedBackground", { Light = Color3.fromRGB( 46, 46, 46 ), Dark = Color3.fromRGB( 255, 255, 255 ), OLEDLight = Color3.fromRGB( 0, 0, 0 ) } )
 
-ThemeUtil.AddDefaultColor( "TextColor", { Light = Color3.fromRGB( 46, 46, 46 ), Dark = Color3.fromRGB( 255, 255, 255 ), OLEDLight = Color3.fromRGB( 0, 0, 0 ) } )
+ThemeUtil.AddDefaultThemeFor( "SecondaryBackground", { Light = Color3.fromRGB( 180, 180, 180 ), Dark = Color3.fromRGB( 77, 77, 77 ), OLEDLight = Color3.fromRGB( 255, 255, 255 ), OLEDDark = Color3.fromRGB( 0, 0, 0 ) } )
 
-ThemeUtil.AddDefaultColor( "InvertedTextColor", { Light = Color3.fromRGB( 255, 255, 255 ), Dark = Color3.fromRGB( 46, 46, 46 ), OLEDLight = Color3.fromRGB( 255, 255, 255 ), OLEDDark = Color3.fromRGB( 0, 0, 0 ) } )
+ThemeUtil.AddDefaultThemeFor( "TextColor", { Light = Color3.fromRGB( 46, 46, 46 ), Dark = Color3.fromRGB( 255, 255, 255 ), OLEDLight = Color3.fromRGB( 0, 0, 0 ) } )
 
-ThemeUtil.AddDefaultColor( "SecondaryTextColor", { Light = Color3.fromRGB( 100, 100, 100 ), Dark = Color3.fromRGB( 170, 170, 170 ), OLEDLight = Color3.fromRGB( 70, 70, 70 ), OLEDDark = Color3.fromRGB( 200, 200, 200 ) } )
+ThemeUtil.AddDefaultThemeFor( "InvertedTextColor", { Light = Color3.fromRGB( 255, 255, 255 ), Dark = Color3.fromRGB( 46, 46, 46 ), OLEDLight = Color3.fromRGB( 255, 255, 255 ), OLEDDark = Color3.fromRGB( 0, 0, 0 ) } )
 
-ThemeUtil.AddDefaultColor( "PositiveColor", { Light = Color3.fromRGB( 100, 180, 100 ), Dark = Color3.fromRGB( 0, 150, 0 ) } )
+ThemeUtil.AddDefaultThemeFor( "SecondaryTextColor", { Light = Color3.fromRGB( 100, 100, 100 ), Dark = Color3.fromRGB( 170, 170, 170 ), OLEDLight = Color3.fromRGB( 70, 70, 70 ), OLEDDark = Color3.fromRGB( 200, 200, 200 ) } )
 
-ThemeUtil.AddDefaultColor( "NegativeColor", { Light = Color3.fromRGB( 255, 0, 0 ) } )
+ThemeUtil.AddDefaultThemeFor( "PositiveColor", { Light = Color3.fromRGB( 100, 180, 100 ), Dark = Color3.fromRGB( 0, 150, 0 ) } )
 
-ThemeUtil.AddDefaultColor( "ProgressColor", { Light = Color3.fromRGB( 255, 255, 50 ) } )
+ThemeUtil.AddDefaultThemeFor( "NegativeColor", { Light = Color3.fromRGB( 255, 0, 0 ) } )
 
-ThemeUtil.AddDefaultColor( "SelectionColor", { Light = Color3.fromRGB( 105, 145, 255 ), Dark = Color3.fromRGB( 0, 100, 255 ) } )
+ThemeUtil.AddDefaultThemeFor( "ProgressColor", { Light = Color3.fromRGB( 255, 255, 50 ) } )
 
-if _G.S20Config and _G.S20Config.DebugTheme then
+ThemeUtil.AddDefaultThemeFor( "SelectionColor", { Light = Color3.fromRGB( 105, 145, 255 ), Dark = Color3.fromRGB( 0, 100, 255 ) } )
+
+if false then
 	
 	spawn( function ( )
 		
 		while wait( ) do
 			
-			local R, G, B = tick( ) * 10 % 255, 127.5 + math.sin( tick( ) * 0.3 ) * 127.5, 127.5 + math.sin( tick( ) * 0.5 + 10 ) * 127.5
+			local H, S, V = tick( ) * 10 % 255, 127.5 + math.sin( tick( ) * 0.3 ) * 127.5, 127.5 + math.sin( tick( ) * 0.5 + 10 ) * 127.5
 			
-			ThemeUtil.UpdateColor( "Background", Color3.fromHSV( R / 255, G / 255, B / 255 ) )
+			ThemeUtil.UpdateThemeFor( "Background", Color3.fromHSV( H / 255, S / 255, V / 255 ) )
 			
-			if B / 255 > 0.5 then
+			ThemeUtil.UpdateThemeFor( "SecondaryBackground", Color3.fromHSV( H / 255, S / 255, ( V > 122.5 and ( V - 75 ) or ( V + 36 ) ) / 255 ) )
+			
+			if V / 255 > 0.75 then
 				
-				ThemeUtil.UpdateColor( "InvertedBackground", Color3.fromRGB( 46, 46, 46 ) )
+				ThemeUtil.UpdateThemeFor( "InvertedBackground", Color3.fromRGB( H / 255, S / 255, ( V - 255 ) / 255 ) )
+				
+				ThemeUtil.UpdateThemeFor( "TextColor", Color3.fromRGB( 46, 46, 46 ) )
 				
 			else
 				
-				ThemeUtil.UpdateColor( "InvertedBackground", Color3.fromRGB( 255, 255, 255 ) )
+				ThemeUtil.UpdateThemeFor( "InvertedBackground", Color3.fromRGB( H / 255, S / 255, ( V - 255 ) / 255 ) )
+				
+				ThemeUtil.UpdateThemeFor( "TextColor", Color3.fromRGB( 255, 255, 255 ) )
 				
 			end
 			
