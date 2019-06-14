@@ -1,5 +1,9 @@
 local ThemeUtil = { }
 
+ThemeUtil.BaseThemeChanged = Instance.new( "BindableEvent" )
+
+ThemeUtil.BaseThemeAdded = Instance.new( "BindableEvent" )
+
 local BoundUpdates = { }
 
 local ObjBoundUpdates = setmetatable( { }, { __newindex = function ( self, Key, Value )
@@ -18,7 +22,91 @@ local ObjBoundUpdates = setmetatable( { }, { __newindex = function ( self, Key, 
 	
 end } )
 
-function ThemeUtil.BindUpdate( Obj, Properties, Keys )
+function ThemeUtil.BindUpdate( Obj, PropKeys, OldKeys )
+	
+	if OldKeys then
+		
+		warn( Obj:GetFullName( ) .. " is using the old BindUpdate function, please update to:\nBindUpdate( Obj, { Property = Keys } )" )
+		
+		return ThemeUtil.OldBindUpdate( Obj, PropKeys, OldKeys )
+		
+	end
+	
+	if type( Obj ) == "table" then
+		
+		for a = 1, #Obj do
+			
+			ThemeUtil.BindUpdate( Obj[ a ], PropKeys )
+			
+		end
+		
+		return
+		
+	end
+	
+	if type( PropKeys ) == "function" then
+		
+		BoundUpdates[ Obj ] = PropKeys
+		
+		coroutine.wrap( function( )
+			
+			local Ran, Error = pcall( PropKeys )
+			
+			if not Ran then
+				
+				warn( "ThemeUtil - Bound Update " .. Obj .. " errored for the initial call\n" .. Error .. "\n" .. debug.traceback( ) )
+				
+			end
+			
+		end )( )
+		
+	else
+		
+		ObjBoundUpdates[ Obj ] = ObjBoundUpdates[ Obj ] or { }
+		
+		for Props, Keys in pairs( PropKeys ) do
+			
+			Props = type( Props ) == "table" and Props or { Props }
+			
+			for a = 1, #Props do
+				
+				ObjBoundUpdates[ Obj ][ Props[ a ] ] = Keys
+				
+				if type( Keys ) == "function" then
+					
+					coroutine.wrap( function( )
+						
+						local Ran, Error = pcall( Keys, Obj )
+						
+						if not Ran then
+							
+							warn( "ThemeUtil - Object Bound Update " .. Obj:GetFullName( ) .. " errored for the initial call for the property '" .. Props[ a ] .. "'\n" .. Error .. "\n" .. debug.traceback( ) )
+							
+						end
+						
+					end )( )
+					
+				else
+					
+					local Ran, Error = pcall( function ( ) Obj[ Props[ a ] ] = ThemeUtil.GetThemeFor( type( Keys ) ~= "table" and Keys or unpack( Keys ) ) end )
+					
+					if not Ran then
+						
+						warn( "ThemeUtil - Object Bound Update " .. Obj:GetFullName( ) .. " errored for the initial call for the property '" .. Props[ a ] .. "'\n" .. Error .. "\n" .. debug.traceback( ) )
+						
+					end
+					
+				end
+				
+			end
+			
+		end
+		
+	end
+	
+end
+
+function ThemeUtil.OldBindUpdate( Obj, Properties, Keys )
 	
 	if type( Obj ) == "table" then
 		
@@ -53,7 +141,7 @@ function ThemeUtil.BindUpdate( Obj, Properties, Keys )
 		Properties = type( Properties ) == "table" and Properties or { Properties }
 		
 		Keys = type( Keys ) == "table" and Keys or type( Keys ) == "function" and Keys or { Keys }
-		
+			
 		ObjBoundUpdates[ Obj ] = ObjBoundUpdates[ Obj ] or { }
 		
 		for a = 1, #Properties do
@@ -80,7 +168,7 @@ function ThemeUtil.BindUpdate( Obj, Properties, Keys )
 				
 			else
 				
-				local Ran, Error = pcall( function ( ) Obj[ Properties[ a ] ] = ThemeUtil.GetThemeFor( unpack( Keys ) ) end )
+				local Ran, Error = pcall( function ( ) Obj[ Properties[ a ] ] = ThemeUtil.GetThemeFor( type( Keys ) ~= "table" and Keys or unpack( Keys ) ) end )
 				
 				if not Ran then
 					
@@ -184,6 +272,20 @@ function ThemeUtil.UpdateThemeFor( Key, Value )
 					
 				end )( )
 				
+			elseif type( d ) == "string" then
+				
+				if d == Key then
+					
+					local Ran, Error = pcall( function ( ) a[ c ] = Value end )
+					
+					if not Ran then
+						
+						warn( "ThemeUtil - Object Bound Update " .. a:GetFullName( ) .. " errored for '" .. d .. "' for the property '" .. c .. "\n" .. Error .. "\n" .. debug.traceback( ) )
+						
+					end
+					
+				end
+				
 			else
 				
 				for e = 1, #d do
@@ -258,11 +360,11 @@ function ThemeUtil.ContrastTextStroke( Obj, Bkg )
 		
 		if V > 0.5 then
 			
-			Obj.TextStrokeColor3 = ThemeUtil.GetThemeFor( "InvertedBackground" )
+			Obj.TextStrokeColor3 = ThemeUtil.GetThemeFor( "Inverted_BackgroundColor" )
 			
 		else
 			
-			Obj.TextStrokeColor3 = ThemeUtil.GetThemeFor( "Background" )
+			Obj.TextStrokeColor3 = ThemeUtil.GetThemeFor( "Primary_BackgroundColor" )
 			
 		end
 		
@@ -272,11 +374,11 @@ function ThemeUtil.ContrastTextStroke( Obj, Bkg )
 		
 		if V2 > 0.5 then
 			
-			Obj.TextStrokeColor3 = ThemeUtil.GetThemeFor( "InvertedBackground" )
+			Obj.TextStrokeColor3 = ThemeUtil.GetThemeFor( "Inverted_BackgroundColor" )
 			
 		else
 			
-			Obj.TextStrokeColor3 = ThemeUtil.GetThemeFor( "Background" )
+			Obj.TextStrokeColor3 = ThemeUtil.GetThemeFor( "Primary_BackgroundColor" )
 			
 		end
 		
@@ -304,15 +406,15 @@ function ThemeUtil.ApplyBasicTheming( Obj, Subtype, DontInvert )
 		
 	end
 	
-	ThemeUtil.BindUpdate( Obj, "BackgroundColor3", Subtype .. "Background")
+	ThemeUtil.BindUpdate( Obj, { BackgroundColor3 = Subtype .. "_BackgroundColor" } )
 	
 	if Obj:IsA( "TextButton" ) or Obj:IsA( "TextLabel" ) or Obj:IsA( "TextBox" ) then
 		
-		ThemeUtil.BindUpdate( Obj, "TextColor3", { Subtype .. "TextColor", ( Subtype ~= "Inverted" and "Inverted" or "" ) .. Subtype .. "Background" } )
+		ThemeUtil.BindUpdate( Obj, { TextColor3 = { Subtype .. "_TextColor", ( Subtype ~= "Inverted" and "Inverted" or "" ) .. Subtype .. "_BackgroundColor" } } )
 		
 	elseif Obj:IsA( "ImageButton" ) or Obj:IsA( "ImageLabel" ) then
 		
-		ThemeUtil.BindUpdate( Obj, "ImageColor3", { Subtype .. "ImageColor", ( Subtype ~= "Inverted" and "Inverted" or "" ) .. Subtype .. "Background" } )
+		ThemeUtil.BindUpdate( Obj, { ImageColor3 = { Subtype .. "_ImageColor", ( Subtype ~= "Inverted" and "Inverted" or "" ) .. Subtype .. "_BackgroundColor" } } )
 		
 	end
 	
@@ -356,7 +458,7 @@ function ThemeUtil.UpdateAll( )
 				
 			else
 				
-				local Ran, Error = pcall( function ( ) a[ c ] = ThemeUtil.GetThemeFor( unpack( d ) ) end )
+				local Ran, Error = pcall( function ( ) a[ c ] = ThemeUtil.GetThemeFor( type( d ) ~= "table" and d or unpack( d ) ) end )
 				
 				if not Ran then
 					
@@ -372,19 +474,7 @@ function ThemeUtil.UpdateAll( )
 	
 end
 
-ThemeUtil.BaseThemes = { Light = { } }
-
-function ThemeUtil.AddBaseTheme( Name, Inherits )
-	
-	ThemeUtil.BaseThemes[ Name ] = setmetatable( { }, { __index = ThemeUtil.BaseThemes[ Inherits ] } )
-	
-end
-
-ThemeUtil.AddBaseTheme( "OLEDLight", "Light" )
-
-ThemeUtil.AddBaseTheme( "Dark", "Light" )
-
-ThemeUtil.AddBaseTheme( "OLEDDark", "Dark" )
+ThemeUtil.BaseThemes = { }
 
 ThemeUtil.Theme = { }
 
@@ -392,49 +482,105 @@ function ThemeUtil.SetBaseTheme( NewBase )
 	
 	if not ThemeUtil.BaseThemes[ NewBase ] then warn( "ThemeUtil - " .. NewBase .. " is not a valid base theme\n" .. debug.traceback( ) ) end
 	
+	ThemeUtil.BaseThemeChanged:Fire( NewBase )
+	
+	ThemeUtil.CurrentBase = NewBase
+	
 	setmetatable( ThemeUtil.Theme, { __index = ThemeUtil.BaseThemes[ NewBase ] } )
 	
 	ThemeUtil.UpdateAll( )
 	
 end
 
-ThemeUtil.SetBaseTheme( "Dark" )
+local CurDefault
 
-function ThemeUtil.AddDefaultThemeFor( Key, Themes )
+function ThemeUtil.AddBaseTheme( Module )
 	
-	if not Themes.Light then error( Key .. " cannot be added as a default theme because it didn't include a value for the Light theme" ) end
-	
-	for a, b in pairs( Themes ) do
+	if ThemeUtil.BaseThemes[ Module.Name ] then
 		
-		ThemeUtil.BaseThemes[ a ][ Key ] = b
+		warn( "ThemeUtil - Couldn't add " .. Module.Name .. " as a base theme with that name already exists" )
+		
+		return false
 		
 	end
 	
-	ThemeUtil.UpdateAll( )
+	local BaseTheme = require( Module )
+	
+	local Inherit
+	
+	if BaseTheme.Inherits then
+		
+		if type( BaseTheme.Inherits ) == "string" then
+			
+			Inherit = ThemeUtil.BaseThemes[ BaseTheme.Inherits ]
+			
+			if not Inherit and script:FindFirstChild( BaseTheme.Inherits ) then
+				
+				Inherit = ThemeUtil.AddBaseTheme( Module )
+				
+			end
+			
+		else
+			
+			Inherit = ThemeUtil.AddBaseTheme( BaseTheme.Inherits )
+			
+		end
+		
+	end
+	
+	if Inherit == false then
+		
+		warn( "ThemeUtil - Couldn't add " .. Module.Name .. " as a base theme as its inherited theme doesn't exist" )
+		
+		return false
+		
+	end
+	
+	if Inherit == nil and Module.Name ~= "Light" then
+		
+		Inherit = ThemeUtil.BaseThemes[ "Light" ]
+		
+	end
+	
+	ThemeUtil.BaseThemes[ Module.Name ] = setmetatable( BaseTheme.Theme, { __index = Inherit } )
+	
+	if BaseTheme.Default and ( not CurDefault or BaseTheme.Default > CurDefault ) then
+		
+		CurDefault = BaseTheme.Default
+		
+		ThemeUtil.SetBaseTheme( Module.Name )
+		
+	end
+	
+	ThemeUtil.BaseThemeAdded:Fire( Module.Name )
+	
+	return ThemeUtil.BaseThemes[ Module.Name ]
 	
 end
 
-ThemeUtil.AddDefaultThemeFor( "Background", { Light = Color3.fromRGB( 255, 255, 255 ), Dark = Color3.fromRGB( 46, 46, 46 ), OLEDDark = Color3.fromRGB( 0, 0, 0 ) } )
+local Kids = script:GetChildren( )
 
-ThemeUtil.AddDefaultThemeFor( "Background_Transparency", { Light = 0 } )
+for a = 1, #Kids do
+	
+	ThemeUtil.AddBaseTheme( Kids[ a ] )
+	
+end
 
-ThemeUtil.AddDefaultThemeFor( "InvertedBackground", { Light = Color3.fromRGB( 46, 46, 46 ), Dark = Color3.fromRGB( 255, 255, 255 ), OLEDLight = Color3.fromRGB( 0, 0, 0 ) } )
+local CustomThemes = game:GetService( "ReplicatedStorage" ):FindFirstChild( "CustomThemes" ) or Instance.new( "Folder" )
 
-ThemeUtil.AddDefaultThemeFor( "SecondaryBackground", { Light = Color3.fromRGB( 180, 180, 180 ), Dark = Color3.fromRGB( 77, 77, 77 ), OLEDLight = Color3.fromRGB( 255, 255, 255 ), OLEDDark = Color3.fromRGB( 0, 0, 0 ) } )
+CustomThemes.Name = "CustomThemes"
 
-ThemeUtil.AddDefaultThemeFor( "TextColor", { Light = Color3.fromRGB( 46, 46, 46 ), Dark = Color3.fromRGB( 255, 255, 255 ), OLEDLight = Color3.fromRGB( 0, 0, 0 ) } )
+CustomThemes.Parent = game:GetService( "ReplicatedStorage" )
 
-ThemeUtil.AddDefaultThemeFor( "InvertedTextColor", { Light = Color3.fromRGB( 255, 255, 255 ), Dark = Color3.fromRGB( 46, 46, 46 ), OLEDLight = Color3.fromRGB( 255, 255, 255 ), OLEDDark = Color3.fromRGB( 0, 0, 0 ) } )
+Kids = CustomThemes:GetChildren( )
 
-ThemeUtil.AddDefaultThemeFor( "SecondaryTextColor", { Light = Color3.fromRGB( 100, 100, 100 ), Dark = Color3.fromRGB( 170, 170, 170 ), OLEDLight = Color3.fromRGB( 70, 70, 70 ), OLEDDark = Color3.fromRGB( 200, 200, 200 ) } )
+for a = 1, #Kids do
+	
+	ThemeUtil.AddBaseTheme( Kids[ a ] )
+	
+end
 
-ThemeUtil.AddDefaultThemeFor( "PositiveColor", { Light = Color3.fromRGB( 100, 180, 100 ), Dark = Color3.fromRGB( 0, 150, 0 ) } )
-
-ThemeUtil.AddDefaultThemeFor( "NegativeColor", { Light = Color3.fromRGB( 255, 0, 0 ) } )
-
-ThemeUtil.AddDefaultThemeFor( "ProgressColor", { Light = Color3.fromRGB( 255, 255, 50 ) } )
-
-ThemeUtil.AddDefaultThemeFor( "SelectionColor", { Light = Color3.fromRGB( 105, 145, 255 ), Dark = Color3.fromRGB( 0, 100, 255 ) } )
+CustomThemes.ChildAdded:Connect( ThemeUtil.AddBaseTheme )
 
 if false then
 	
@@ -444,21 +590,23 @@ if false then
 			
 			local H, S, V = tick( ) * 10 % 255, 127.5 + math.sin( tick( ) * 0.3 ) * 127.5, 127.5 + math.sin( tick( ) * 0.5 + 10 ) * 127.5
 			
-			ThemeUtil.UpdateThemeFor( "Background", Color3.fromHSV( H / 255, S / 255, V / 255 ) )
+			ThemeUtil.UpdateThemeFor( "Primary_BackgroundColor", Color3.fromHSV( H / 255, S / 255, V / 255 ) )
 			
-			ThemeUtil.UpdateThemeFor( "SecondaryBackground", Color3.fromHSV( H / 255, S / 255, ( V > 122.5 and ( V - 75 ) or ( V + 36 ) ) / 255 ) )
+			ThemeUtil.UpdateThemeFor( "Primary_BackgroundTransparency", math.sin( tick( ) * 0.3 ) )
+			
+			ThemeUtil.UpdateThemeFor( "Secondary_BackgroundColor", Color3.fromHSV( H / 255, S / 255, ( V > 122.5 and ( V - 75 ) or ( V + 36 ) ) / 255 ) )
 			
 			if V / 255 > 0.75 then
 				
-				ThemeUtil.UpdateThemeFor( "InvertedBackground", Color3.fromRGB( H / 255, S / 255, ( V - 255 ) / 255 ) )
+				ThemeUtil.UpdateThemeFor( "Inverted_BackgroundColor", Color3.fromRGB( H / 255, S / 255, ( V - 255 ) / 255 ) )
 				
-				ThemeUtil.UpdateThemeFor( "TextColor", Color3.fromRGB( 46, 46, 46 ) )
+				ThemeUtil.UpdateThemeFor( "Primary_TextColor", Color3.fromRGB( 46, 46, 46 ) )
 				
 			else
 				
-				ThemeUtil.UpdateThemeFor( "InvertedBackground", Color3.fromRGB( H / 255, S / 255, ( V - 255 ) / 255 ) )
+				ThemeUtil.UpdateThemeFor( "Inverted_BackgroundColor", Color3.fromRGB( H / 255, S / 255, ( V - 255 ) / 255 ) )
 				
-				ThemeUtil.UpdateThemeFor( "TextColor", Color3.fromRGB( 255, 255, 255 ) )
+				ThemeUtil.UpdateThemeFor( "Primary_TextColor", Color3.fromRGB( 255, 255, 255 ) )
 				
 			end
 			
