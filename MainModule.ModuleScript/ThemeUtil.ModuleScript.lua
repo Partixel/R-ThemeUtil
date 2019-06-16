@@ -280,7 +280,7 @@ function ThemeUtil.UpdateThemeFor( Key, Value )
 					
 					if not Ran then
 						
-						warn( "ThemeUtil - Object Bound Update " .. a:GetFullName( ) .. " errored for '" .. d .. "' for the property '" .. c .. "\n" .. Error .. "\n" .. debug.traceback( ) )
+						warn( "ThemeUtil - Object Bound Update " .. a:GetFullName( ) .. " errored for '" .. d .. "' for the property '" .. c .. "'\n" .. Error .. "\n" .. debug.traceback( ) )
 						
 					end
 					
@@ -296,7 +296,7 @@ function ThemeUtil.UpdateThemeFor( Key, Value )
 						
 						if not Ran then
 							
-							warn( "ThemeUtil - Object Bound Update " .. a:GetFullName( ) .. " errored for '" .. d[ e ] .. "' for the property '" .. c .. "\n" .. Error .. "\n" .. debug.traceback( ) )
+							warn( "ThemeUtil - Object Bound Update " .. a:GetFullName( ) .. " errored for '" .. d[ e ] .. "' for the property '" .. c .. "'\n" .. Error .. "\n" .. debug.traceback( ) )
 							
 						end
 						
@@ -462,7 +462,7 @@ function ThemeUtil.UpdateAll( )
 				
 				if not Ran then
 					
-					warn( "ThemeUtil - Object Bound Update " .. a:GetFullName( ) .. " errored when updating all themes for the property '" .. c .. "\n" .. Error .. "\n" .. debug.traceback( ) )
+					warn( "ThemeUtil - Object Bound Update " .. a:GetFullName( ) .. " errored when updating all themes for the property '" .. c .. "'\n" .. Error .. "\n" .. debug.traceback( ) )
 					
 				end
 				
