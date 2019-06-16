@@ -8,9 +8,7 @@ ThemeUtil.BindUpdate( script.Parent.ThemeFrame, { BackgroundColor3 = "Primary_Ba
 
 ThemeUtil.BindUpdate( script.Parent.ThemeFrame.Main, { ScrollBarImageColor3 = "Secondary_BackgroundColor", ScrollBarImageTransparency = "Secondary_BackgroundTransparency" } )
 
-ThemeUtil.BindUpdate( { script.Parent.ThemeFrame.Search, script.Parent.ThemeFrame.Bar }, { BackgroundColor3 = "Secondary_BackgroundColor", BackgroundTransparency = "Secondary_BackgroundTransparency" } )
-
-ThemeUtil.BindUpdate( script.Parent.ThemeFrame.Search, { TextColor3 = "Primary_TextColor", TextTransparency = "Primary_TextTransparency", PlaceholderColor3 = "Secondary_TextColor" } )
+ThemeUtil.BindUpdate( script.Parent.ThemeFrame.Search, { BackgroundColor3 = "Secondary_BackgroundColor", BackgroundTransparency = "Secondary_BackgroundTransparency", TextColor3 = "Primary_TextColor", TextTransparency = "Primary_TextTransparency", PlaceholderColor3 = "Secondary_TextColor" } )
 
 script.Parent.ThemeFrame.Main.UIListLayout:GetPropertyChangedSignal( "AbsoluteContentSize" ):Connect( function ( )
 	
@@ -119,7 +117,7 @@ end
 
 ThemeUtil.BaseThemeChanged.Event:Connect( function ( NewBase )
 	
-	if script.Parent.Open.Value then
+	if script.Parent.ThemeFrame.Visible then
 		
 		local Base = script.Parent.ThemeFrame.Main:FindFirstChild( ThemeUtil.CurrentBase )
 		
@@ -147,7 +145,7 @@ end )
 
 ThemeUtil.BaseThemeAdded.Event:Connect( function ( )
 	
-	if script.Parent.Open.Value then
+	if script.Parent.ThemeFrame.Visible then
 		
 		Redraw( )
 		
