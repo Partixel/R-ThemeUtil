@@ -560,17 +560,31 @@ end
 
 local Kids = script:GetChildren( )
 
+script.ChildAdded:Connect( ThemeUtil.AddBaseTheme )
+
 for a = 1, #Kids do
 	
 	ThemeUtil.AddBaseTheme( Kids[ a ] )
 	
 end
 
-local CustomThemes = game:GetService( "ReplicatedStorage" ):FindFirstChild( "CustomThemes" ) or Instance.new( "Folder" )
+local CustomThemes
 
-CustomThemes.Name = "CustomThemes"
+if game:GetService( "RunService" ):IsServer( ) then
+	
+	CustomThemes = game:GetService( "ReplicatedStorage" ):FindFirstChild( "CustomThemes" ) or Instance.new( "Folder" )
+	
+	CustomThemes.Name = "CustomThemes"
+	
+	CustomThemes.Parent = game:GetService( "ReplicatedStorage" )
+	
+else
+	
+	CustomThemes = game:GetService( "ReplicatedStorage" ):WaitForChild( "CustomThemes" )
+	
+end
 
-CustomThemes.Parent = game:GetService( "ReplicatedStorage" )
+CustomThemes.ChildAdded:Connect( ThemeUtil.AddBaseTheme )
 
 Kids = CustomThemes:GetChildren( )
 
@@ -579,8 +593,6 @@ for a = 1, #Kids do
 	ThemeUtil.AddBaseTheme( Kids[ a ] )
 	
 end
-
-CustomThemes.ChildAdded:Connect( ThemeUtil.AddBaseTheme )
 
 if false then
 	

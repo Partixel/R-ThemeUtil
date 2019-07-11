@@ -1,5 +1,7 @@
 local Players = game:GetService( "Players" )
 
+require( script.ThemeUtil )
+
 script.ThemeUtil.Parent = game:GetService( "ReplicatedStorage" )
 
 if not game:GetService( "StarterGui" ):FindFirstChild( "ThemeGui" ) then
