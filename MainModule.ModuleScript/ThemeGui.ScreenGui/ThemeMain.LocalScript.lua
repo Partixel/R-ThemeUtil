@@ -181,9 +181,7 @@ end
 
 if script.Parent:FindFirstChild( "Toggle" ) then
 	
-	local function HandleTransparency( Obj )
-		
-		local Transparency = ThemeUtil.GetThemeFor( "Primary_BackgroundTransparency" )
+	local function HandleTransparency( Obj, Transparency )
 		
 		Obj.BackgroundTransparency = Transparency
 		
@@ -203,7 +201,7 @@ if script.Parent:FindFirstChild( "Toggle" ) then
 		
 	end
 	
-	ThemeUtil.BindUpdate( { script.Parent.Toggle, script.Parent.AltToggle }, { BackgroundColor3 = script.Parent.Open.Value and "Selection_Color3" or "Primary_BackgroundColor", TextTransparency = "Primary_TextTransparency", TextStrokeColor3 = "Primary_TextColor", BackgroundTransparency = HandleTransparency } )
+	ThemeUtil.BindUpdate( { script.Parent.Toggle, script.Parent.AltToggle }, { BackgroundColor3 = script.Parent.Open.Value and "Selection_Color3" or "Primary_BackgroundColor", TextTransparency = "Primary_TextTransparency", TextStrokeColor3 = "Primary_TextColor", Primary_BackgroundTransparency = HandleTransparency } )
 	
 	function ToggleGui( )
 		
@@ -221,7 +219,7 @@ if script.Parent:FindFirstChild( "Toggle" ) then
 			
 			TweenService:Create( script.Parent.ThemeFrame, TweenInfo.new( 0.5, Enum.EasingStyle.Sine ), { Position = UDim2.new( 0.15, 0, 0.43, 0 ), Size = UDim2.new( 0.2, 0, 0.4, 0 ) } ):Play( )
 			
-			ThemeUtil.BindUpdate( { script.Parent.Toggle, script.Parent.AltToggle }, { BackgroundColor3 = script.Parent.Open.Value and "Selection_Color3" or "Primary_BackgroundColor" } )
+			ThemeUtil.BindUpdate( { script.Parent.Toggle, script.Parent.AltToggle }, { BackgroundColor3 = "Selection_Color3" } )
 			
 		else
 			
@@ -241,7 +239,7 @@ if script.Parent:FindFirstChild( "Toggle" ) then
 			
 			Tween:Play( )
 			
-			ThemeUtil.BindUpdate( { script.Parent.Toggle, script.Parent.AltToggle }, { BackgroundColor3 = script.Parent.Open.Value and "Selection_Color3" or "Primary_BackgroundColor" } )
+			ThemeUtil.BindUpdate( { script.Parent.Toggle, script.Parent.AltToggle }, { BackgroundColor3 = "Primary_BackgroundColor" } )
 			
 		end
 		
