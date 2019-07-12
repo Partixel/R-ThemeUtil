@@ -4,6 +4,8 @@ ThemeUtil.BaseThemeChanged = Instance.new( "BindableEvent" )
 
 ThemeUtil.BaseThemeAdded = Instance.new( "BindableEvent" )
 
+ThemeUtil.ThemeKeyChanged = Instance.new( "BindableEvent" )
+
 local BoundUpdates = { }
 
 local ObjBoundUpdates = setmetatable( { }, { __newindex = function ( self, Key, Value )
@@ -22,15 +24,7 @@ local ObjBoundUpdates = setmetatable( { }, { __newindex = function ( self, Key, 
 	
 end } )
 
-function ThemeUtil.BindUpdate( Obj, PropKeys, OldKeys )
-	
-	if OldKeys then
-		
-		warn( Obj:GetFullName( ) .. " is using the old BindUpdate function, please update to:\nBindUpdate( Obj, { Property = Keys } )" )
-		
-		return ThemeUtil.OldBindUpdate( Obj, PropKeys, OldKeys )
-		
-	end
+function ThemeUtil.BindUpdate( Obj, PropKeys )
 	
 	if type( Obj ) == "table" then
 		
@@ -66,21 +60,21 @@ function ThemeUtil.BindUpdate( Obj, PropKeys, OldKeys )
 		
 		for Props, Keys in pairs( PropKeys ) do
 			
-			Props = type( Props ) == "table" and Props or { Props }
-			
-			for a = 1, #Props do
+			if type( Keys ) == "function" then
 				
-				ObjBoundUpdates[ Obj ][ Props[ a ] ] = Keys
+				local Ran, Theme = pcall( ThemeUtil.GetThemeFor, Props )
 				
-				if type( Keys ) == "function" then
+				if Ran then
+					
+					ObjBoundUpdates[ Obj ][ Props ] = Keys
 					
 					coroutine.wrap( function( )
 						
-						local Ran, Error = pcall( Keys, Obj )
+						local Ran, Error = pcall( Keys, Obj, Theme )
 						
 						if not Ran then
 							
-							warn( "ThemeUtil - Object Bound Update " .. Obj:GetFullName( ) .. " errored for the initial call for the property '" .. Props[ a ] .. "'\n" .. Error .. "\n" .. debug.traceback( ) )
+							warn( "ThemeUtil - Object Bound Update " .. Obj:GetFullName( ) .. " errored for the initial call for the key '" .. Props .. "'\n" .. Error .. "\n" .. debug.traceback( ) )
 							
 						end
 						
@@ -88,91 +82,25 @@ function ThemeUtil.BindUpdate( Obj, PropKeys, OldKeys )
 					
 				else
 					
-					local Ran, Error = pcall( function ( ) Obj[ Props[ a ] ] = ThemeUtil.GetThemeFor( type( Keys ) ~= "table" and Keys or unpack( Keys ) ) end )
+					warn( "ThemeUtil - Couldn't bind object update for " .. Obj:GetFullName ( ) .. " because the key is not a valid theme key\n" .. debug.traceback( ) )
+					
+				end
+				
+			else
+				
+				Props = type( Props ) == "table" and Props or { Props }
+				
+				for a = 1, #Props do
+					
+					ObjBoundUpdates[ Obj ][ Props[ a ] ] = Keys
+					
+					local Ran, Error = pcall( function ( ) Obj[ Props[ a ] ] = ThemeUtil.GetThemeFor( Keys ) end )
 					
 					if not Ran then
 						
 						warn( "ThemeUtil - Object Bound Update " .. Obj:GetFullName( ) .. " errored for the initial call for the property '" .. Props[ a ] .. "'\n" .. Error .. "\n" .. debug.traceback( ) )
 						
 					end
-					
-				end
-				
-			end
-			
-		end
-		
-	end
-	
-end
-
-function ThemeUtil.OldBindUpdate( Obj, Properties, Keys )
-	
-	if type( Obj ) == "table" then
-		
-		for a = 1, #Obj do
-			
-			ThemeUtil.BindUpdate( Obj[ a ], Properties, Keys )
-			
-		end
-		
-		return
-		
-	end
-	
-	if type( Properties ) == "function" then
-		
-		BoundUpdates[ Obj ] = Properties
-		
-		coroutine.wrap( function( )
-			
-			local Ran, Error = pcall( Properties )
-			
-			if not Ran then
-				
-				warn( "ThemeUtil - Bound Update " .. Obj .. " errored for the initial call\n" .. Error .. "\n" .. debug.traceback( ) )
-				
-			end
-			
-		end )( )
-		
-	else
-		
-		Properties = type( Properties ) == "table" and Properties or { Properties }
-		
-		Keys = type( Keys ) == "table" and Keys or type( Keys ) == "function" and Keys or { Keys }
-			
-		ObjBoundUpdates[ Obj ] = ObjBoundUpdates[ Obj ] or { }
-		
-		for a = 1, #Properties do
-			
-			ObjBoundUpdates[ Obj ][ Properties[ a ] ] = Keys
-			
-		end
-		
-		for a = 1, #Properties do
-			
-			if type( Keys ) == "function" then
-				
-				coroutine.wrap( function( )
-					
-					local Ran, Error = pcall( Keys, Obj )
-					
-					if not Ran then
-						
-						warn( "ThemeUtil - Object Bound Update " .. Obj:GetFullName( ) .. " errored for the initial call for the property '" .. Properties[ a ] .. "'\n" .. Error .. "\n" .. debug.traceback( ) )
-						
-					end
-					
-				end )( )
-				
-			else
-				
-				local Ran, Error = pcall( function ( ) Obj[ Properties[ a ] ] = ThemeUtil.GetThemeFor( type( Keys ) ~= "table" and Keys or unpack( Keys ) ) end )
-				
-				if not Ran then
-					
-					warn( "ThemeUtil - Object Bound Update " .. Obj:GetFullName( ) .. " errored for the initial call for the property '" .. Properties[ a ] .. "'\n" .. Error .. "\n" .. debug.traceback( ) )
 					
 				end
 				
@@ -232,6 +160,26 @@ function ThemeUtil.UnbindUpdate( Obj, Properties )
 	
 end
 
+function ThemeUtil.IsPriorityKey( Keys, Key )
+	
+	if type( Keys ) == "string" then return Keys == Key end
+	
+	for a = 1, #Keys do
+		
+		if Keys[ a ] == Key then
+			
+			return true
+			
+		elseif ThemeUtil.Theme[ Keys[ a ] ] then
+			
+			return
+			
+		end
+		
+	end
+	
+end
+
 function ThemeUtil.UpdateThemeFor( Key, Value )
 	
 	ThemeUtil.Theme[ Key ] = Value
@@ -254,59 +202,35 @@ function ThemeUtil.UpdateThemeFor( Key, Value )
 		
 	end
 	
-	for a, b in pairs( ObjBoundUpdates ) do
+	for Obj, PropKeys in pairs( ObjBoundUpdates ) do
 		
-		for c, d in pairs( b ) do
+		for Prop, Keys in pairs( PropKeys ) do
 			
-			if type( d ) == "function" then
+			if type( Keys ) == "function" then
 				
-				coroutine.wrap( function( )
+				if ThemeUtil.IsPriorityKey( Prop, Key )then 
 					
-					local Ran, Error = pcall( d, a )
-					
-					if not Ran then
+					coroutine.wrap( function( )
 						
-						warn( "ThemeUtil - Object Bound Update " .. a:GetFullName( ) .. " errored for the property '" .. c .. "'\n" .. Error .. "\n" .. debug.traceback( ) )
-						
-					end
-					
-				end )( )
-				
-			elseif type( d ) == "string" then
-				
-				if d == Key then
-					
-					local Ran, Error = pcall( function ( ) a[ c ] = Value end )
-					
-					if not Ran then
-						
-						warn( "ThemeUtil - Object Bound Update " .. a:GetFullName( ) .. " errored for '" .. d .. "' for the property '" .. c .. "'\n" .. Error .. "\n" .. debug.traceback( ) )
-						
-					end
-					
-				end
-				
-			else
-				
-				for e = 1, #d do
-					
-					if d[ e ] == Key then
-						
-						local Ran, Error = pcall( function ( ) a[ c ] = Value end )
+						local Ran, Error = pcall( Keys, Obj, Value )
 						
 						if not Ran then
 							
-							warn( "ThemeUtil - Object Bound Update " .. a:GetFullName( ) .. " errored for '" .. d[ e ] .. "' for the property '" .. c .. "'\n" .. Error .. "\n" .. debug.traceback( ) )
+							warn( "ThemeUtil - Object Bound Update " .. Obj:GetFullName( ) .. " errored for the initial call for the key '" .. Key .. "'\n" .. Error .. "\n" .. debug.traceback( ) )
 							
 						end
 						
-						break
-						
-					elseif ThemeUtil.Theme[ d[ e ] ] then
-						
-						break
-						
-					end
+					end )( )
+					
+				end
+				
+			elseif ThemeUtil.IsPriorityKey( Keys, Key ) then
+				
+				local Ran, Error = pcall( function ( ) Obj[ Prop ] = Value end )
+				
+				if not Ran then
+					
+					warn( "ThemeUtil - Object Bound Update " .. Obj:GetFullName( ) .. " errored for the initial call for the property '" .. Prop .. "'\n" .. Error .. "\n" .. debug.traceback( ) )
 					
 				end
 				
@@ -318,9 +242,9 @@ function ThemeUtil.UpdateThemeFor( Key, Value )
 	
 end
 
-function ThemeUtil.GetThemeFor( ... )
+function ThemeUtil.GetThemeFor( Keys, ... )
 	
-	local Keys = { ... }
+	local Keys = type( Keys ) == "table" and Keys or { Keys, ... }
 	
 	for a = 1, #Keys do
 		
@@ -354,21 +278,7 @@ function ThemeUtil.ContrastTextStroke( Obj, Bkg )
 	
 	local _, _, V2 = Color3.toHSV( Bkg )
 	
-	if Obj.Parent.ImageTransparency >= 1 then
-		
-		Obj.TextStrokeTransparency = 0
-		
-		if V > 0.5 then
-			
-			Obj.TextStrokeColor3 = ThemeUtil.GetThemeFor( "Inverted_BackgroundColor" )
-			
-		else
-			
-			Obj.TextStrokeColor3 = ThemeUtil.GetThemeFor( "Primary_BackgroundColor" )
-			
-		end
-		
-	elseif math.abs( V2 - V ) <= 0.25 then
+	if math.abs( V2 - V ) <= 0.25 then
 		
 		Obj.TextStrokeTransparency = 0
 		
@@ -438,19 +348,19 @@ function ThemeUtil.UpdateAll( )
 		
 	end
 	
-	for a, b in pairs( ObjBoundUpdates ) do
+	for Obj, PropKeys in pairs( ObjBoundUpdates ) do
 		
-		for c, d in pairs( b ) do
+		for Prop, Keys in pairs( PropKeys ) do
 			
-			if type( d ) == "function" then
+			if type( Keys ) == "function" then
 				
 				coroutine.wrap( function( )
 					
-					local Ran, Error = pcall( d, a )
+					local Ran, Error = pcall( Keys, Obj, ThemeUtil.GetThemeFor( Prop ) )
 					
 					if not Ran then
 						
-						warn( "ThemeUtil - Object Bound Update " .. a:GetFullName( ) .. " errored when updating all themes\n" .. Error .. "\n" .. debug.traceback( ) )
+						warn( "ThemeUtil - Object Bound Update " .. Obj:GetFullName( ) .. " errored for the initial call for the key '" .. Prop .. "'\n" .. Error .. "\n" .. debug.traceback( ) )
 						
 					end
 					
@@ -458,11 +368,11 @@ function ThemeUtil.UpdateAll( )
 				
 			else
 				
-				local Ran, Error = pcall( function ( ) a[ c ] = ThemeUtil.GetThemeFor( type( d ) ~= "table" and d or unpack( d ) ) end )
+				local Ran, Error = pcall( function ( ) Obj[ Prop ] = ThemeUtil.GetThemeFor( Keys ) end )
 				
 				if not Ran then
 					
-					warn( "ThemeUtil - Object Bound Update " .. a:GetFullName( ) .. " errored when updating all themes for the property '" .. c .. "'\n" .. Error .. "\n" .. debug.traceback( ) )
+					warn( "ThemeUtil - Object Bound Update " .. Obj:GetFullName( ) .. " errored for the initial call for the property '" .. Prop .. "'\n" .. Error .. "\n" .. debug.traceback( ) )
 					
 				end
 				
@@ -492,6 +402,68 @@ function ThemeUtil.SetBaseTheme( NewBase )
 	
 end
 
+ThemeUtil.ThemeKeys = { }
+
+function ThemeUtil.AddThemeKey( Key, Category, DefaultVal )
+	
+	if DefaultVal then
+		
+		while not ThemeUtil.BaseThemes.Light do wait( ) end
+		
+		if not ThemeUtil.BaseThemes.Light[ Key ] then
+			
+			ThemeUtil.BaseThemes.Light[ Key ] = DefaultVal
+			
+		end
+		
+	elseif ThemeUtil.BaseThemes.Light and not ThemeUtil.BaseThemes.Light[ Key ] then
+		
+		error( "ThemeUtil - Could not add theme key " .. Key .. " without a default value as it doesn't exist in the Light theme" )
+		
+	end
+	
+	ThemeUtil.ThemeKeys[ Key ] = Category
+	
+	ThemeUtil.ThemeKeyChanged:Fire( Key, Category )
+	
+end
+
+function ThemeUtil.RemoveThemeKey( Key )
+	
+	ThemeUtil.ThemeKeys[ Key ] = nil
+	
+	ThemeUtil.ThemeKeyChanged:Fire( Key )
+	
+end
+
+ThemeUtil.AddThemeKey( "Primary_BackgroundColor", "Core" )
+
+ThemeUtil.AddThemeKey( "Primary_BackgroundTransparency", "Core" )
+
+ThemeUtil.AddThemeKey( "Inverted_BackgroundColor", "Core" )
+
+ThemeUtil.AddThemeKey( "Secondary_BackgroundColor", "Core" )
+
+ThemeUtil.AddThemeKey( "Secondary_BackgroundTransparency", "Core" )
+
+ThemeUtil.AddThemeKey( "Primary_TextColor", "Core" )
+
+ThemeUtil.AddThemeKey( "Primary_TextTransparency", "Core" )
+
+ThemeUtil.AddThemeKey( "Inverted_TextColor", "Core" )
+
+ThemeUtil.AddThemeKey( "Secondary_TextColor", "Core" )
+
+ThemeUtil.AddThemeKey( "Secondary_TextTransparency", "Core" )
+
+ThemeUtil.AddThemeKey( "Positive_Color3", "Core" )
+
+ThemeUtil.AddThemeKey( "Negative_Color3", "Core" )
+
+ThemeUtil.AddThemeKey( "Progress_Color3", "Core" )
+
+ThemeUtil.AddThemeKey( "Selection_Color3", "Core" )
+
 local CurDefault
 
 function ThemeUtil.AddBaseTheme( Module )
@@ -508,7 +480,9 @@ function ThemeUtil.AddBaseTheme( Module )
 	
 	local Inherit
 	
-	if BaseTheme.Inherits then
+	if Module.Name ~= "Light" then
+		
+		BaseTheme.Inherits = BaseTheme.Inherits or "Light"
 		
 		if type( BaseTheme.Inherits ) == "string" then
 			
