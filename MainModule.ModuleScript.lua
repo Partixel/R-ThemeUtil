@@ -10,13 +10,11 @@ if not game:GetService( "StarterGui" ):FindFirstChild( "ThemeGui" ) then
 	
 	Gui.Parent = game:GetService( "StarterGui" )
 	
-	local Plrs = game:GetService( "Players" ):GetPlayers( )
-	
-	for a = 1, #Plrs do
+	for _, Plr in ipairs( game:GetService( "Players" ):GetPlayers( ) ) do
 		
-		if Plrs[ a ]:FindFirstChild( "PlayerGui" ) and Plrs[ a ].Character and not Plrs[ a ].PlayerGui:FindFirstChild( Gui.Name ) then
+		if Plr:FindFirstChild( "PlayerGui" ) and Plr.Character and not Plr.PlayerGui:FindFirstChild( Gui.Name ) then
 			
-			Gui:Clone( ).Parent = Plrs[ a ].PlayerGui
+			Gui:Clone( ).Parent = Plr.PlayerGui
 			
 		end
 		
@@ -24,9 +22,9 @@ if not game:GetService( "StarterGui" ):FindFirstChild( "ThemeGui" ) then
 	
 end
 
-local DataStore2 = require(1936396537)
+local DataStore2 = require( 1936396537 )
 
-DataStore2.Combine("PartixelsVeryCoolMasterKey", "Theme1")
+DataStore2.Combine( "PartixelsVeryCoolMasterKey", "Theme1" )
 
 local GetTheme = Instance.new( "RemoteFunction" )
 

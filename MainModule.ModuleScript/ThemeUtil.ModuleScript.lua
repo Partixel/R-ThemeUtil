@@ -6,6 +6,8 @@ ThemeUtil.BaseThemeAdded = Instance.new( "BindableEvent" )
 
 ThemeUtil.ThemeKeyChanged = Instance.new( "BindableEvent" )
 
+local CategoryLoaded = Instance.new( "BindableEvent" )
+
 local BoundUpdates = { }
 
 local ObjBoundUpdates = setmetatable( { }, { __newindex = function ( self, Key, Value )
@@ -28,9 +30,9 @@ function ThemeUtil.BindUpdate( Obj, PropKeys )
 	
 	if type( Obj ) == "table" then
 		
-		for a = 1, #Obj do
+		for _, AObj in ipairs( Obj ) do
 			
-			ThemeUtil.BindUpdate( Obj[ a ], PropKeys )
+			ThemeUtil.BindUpdate( AObj, PropKeys )
 			
 		end
 		
@@ -82,23 +84,23 @@ function ThemeUtil.BindUpdate( Obj, PropKeys )
 					
 				else
 					
-					warn( "ThemeUtil - Couldn't bind object update for " .. Obj:GetFullName ( ) .. " because the key is not a valid theme key\n" .. debug.traceback( ) )
+					warn( "ThemeUtil - Couldn't bind object update for " .. Obj:GetFullName ( ) .. " because " .. Props .. " is not a valid theme key\n" .. debug.traceback( ) )
 					
 				end
 				
 			else
 				
-				Props = type( Props ) == "table" and Props or { Props }
 				
-				for a = 1, #Props do
+				
+				for _, Prop in ipairs( type( Props ) == "table" and Props or { Props } ) do
 					
-					ObjBoundUpdates[ Obj ][ Props[ a ] ] = Keys
+					ObjBoundUpdates[ Obj ][ Prop ] = Keys
 					
-					local Ran, Error = pcall( function ( ) Obj[ Props[ a ] ] = ThemeUtil.GetThemeFor( Keys ) end )
+					local Ran, Error = pcall( function ( ) Obj[ Prop ] = ThemeUtil.GetThemeFor( Keys ) end )
 					
 					if not Ran then
 						
-						warn( "ThemeUtil - Object Bound Update " .. Obj:GetFullName( ) .. " errored for the initial call for the property '" .. Props[ a ] .. "'\n" .. Error .. "\n" .. debug.traceback( ) )
+						warn( "ThemeUtil - Object Bound Update " .. Obj:GetFullName( ) .. " errored for the initial call for the property '" .. Prop .. "'\n" .. Error .. "\n" .. debug.traceback( ) )
 						
 					end
 					
@@ -116,9 +118,9 @@ function ThemeUtil.UnbindUpdate( Obj, Properties )
 	
 	if type( Obj ) == "table" then
 		
-		for a = 1, #Obj do
+		for _, AObj in ipairs( Obj ) do
 			
-			ThemeUtil.UnbindUpdate( Obj[ a ], Properties )
+			ThemeUtil.UnbindUpdate( AObj, Properties )
 			
 		end
 		
@@ -136,9 +138,9 @@ function ThemeUtil.UnbindUpdate( Obj, Properties )
 		
 		for a, b in pairs( ObjBoundUpdates[ Obj ] ) do
 			
-			for c = 1, #Properties do
+			for _, Prop in ipairs( Properties ) do
 				
-				if Properties[ c ] == a then
+				if Prop == a then
 					
 					ObjBoundUpdates[ Obj ][ a ] = nil
 					
@@ -164,13 +166,13 @@ function ThemeUtil.IsPriorityKey( Keys, Key )
 	
 	if type( Keys ) == "string" then return Keys == Key end
 	
-	for a = 1, #Keys do
+	for _, OKey in ipairs( Keys ) do
 		
-		if Keys[ a ] == Key then
+		if OKey == Key then
 			
 			return true
 			
-		elseif ThemeUtil.Theme[ Keys[ a ] ] then
+		elseif ThemeUtil.Theme[ OKey ] then
 			
 			return
 			
@@ -246,11 +248,11 @@ function ThemeUtil.GetThemeFor( Keys, ... )
 	
 	local Keys = type( Keys ) == "table" and Keys or { Keys, ... }
 	
-	for a = 1, #Keys do
+	for _, Key in ipairs( Keys ) do
 		
-		if ThemeUtil.Theme[ Keys[ a ] ] then
+		if ThemeUtil.Theme[ Key ] ~= nil then
 			
-			return ThemeUtil.Theme[ Keys[ a ] ]
+			return ThemeUtil.Theme[ Key ]
 			
 		end
 		
@@ -264,9 +266,9 @@ function ThemeUtil.ContrastTextStroke( Obj, Bkg )
 	
 	if type( Obj ) == "table" then
 		
-		for a = 1, #Obj do
+		for _, AObj in ipairs( Obj ) do
 			
-			ThemeUtil.ContrastTextStroke( Obj[ a ], Bkg )
+			ThemeUtil.ContrastTextStroke( AObj, Bkg )
 			
 		end
 		
@@ -306,9 +308,9 @@ function ThemeUtil.ApplyBasicTheming( Obj, Subtype, DontInvert )
 	
 	if type( Obj ) == "table" then
 		
-		for a = 1, #Obj do
+		for _, AObj in ipairs( Obj ) do
 			
-			ThemeUtil.ApplyBasicTheming( Obj[ a ], Subtype, DontInvert )
+			ThemeUtil.ApplyBasicTheming( AObj, Subtype, DontInvert )
 			
 		end
 		
@@ -406,17 +408,17 @@ ThemeUtil.ThemeKeys = { }
 
 function ThemeUtil.AddThemeKey( Key, Category, DefaultVal )
 	
-	if DefaultVal then
+	if DefaultVal ~= nil then
 		
 		while not ThemeUtil.BaseThemes.Light do wait( ) end
 		
-		if not ThemeUtil.BaseThemes.Light[ Key ] then
+		if ThemeUtil.BaseThemes.Light[ Key ] == nil then
 			
 			ThemeUtil.BaseThemes.Light[ Key ] = DefaultVal
 			
 		end
 		
-	elseif ThemeUtil.BaseThemes.Light and not ThemeUtil.BaseThemes.Light[ Key ] then
+	elseif ThemeUtil.BaseThemes.Light and ThemeUtil.BaseThemes.Light[ Key ] == nil then
 		
 		error( "ThemeUtil - Could not add theme key " .. Key .. " without a default value as it doesn't exist in the Light theme" )
 		
@@ -433,6 +435,26 @@ function ThemeUtil.RemoveThemeKey( Key )
 	ThemeUtil.ThemeKeys[ Key ] = nil
 	
 	ThemeUtil.ThemeKeyChanged:Fire( Key )
+	
+end
+
+local FinishedCategories = { }
+
+function ThemeUtil.FinishedCategory( Category )
+	
+	FinishedCategories[ Category ] = true
+	
+	CategoryLoaded:Fire( )
+	
+end
+
+function ThemeUtil.WaitForCategory( Category )
+	
+	while not FinishedCategories[ Category ] do
+		
+		CategoryLoaded.Event:Wait( )
+		
+	end
 	
 end
 
@@ -532,13 +554,11 @@ function ThemeUtil.AddBaseTheme( Module )
 	
 end
 
-local Kids = script:GetChildren( )
-
 script.ChildAdded:Connect( ThemeUtil.AddBaseTheme )
 
-for a = 1, #Kids do
+for _, Obj in ipairs( script:GetChildren( ) ) do
 	
-	ThemeUtil.AddBaseTheme( Kids[ a ] )
+	ThemeUtil.AddBaseTheme( Obj )
 	
 end
 
@@ -560,11 +580,9 @@ end
 
 CustomThemes.ChildAdded:Connect( ThemeUtil.AddBaseTheme )
 
-Kids = CustomThemes:GetChildren( )
-
-for a = 1, #Kids do
+for _, Obj in ipairs( CustomThemes:GetChildren( ) ) do
 	
-	ThemeUtil.AddBaseTheme( Kids[ a ] )
+	ThemeUtil.AddBaseTheme( Obj )
 	
 end
 

@@ -51,11 +51,9 @@ local Invalid = true
 
 function Redraw( )
 	
-	local Old = script.Parent.ThemeFrame.Main:GetChildren( )
-	
-	for a = 1, #Old do
+	for _, Obj in ipairs( script.Parent.ThemeFrame.Main:GetChildren( ) ) do
 		
-		if Old[ a ]:IsA( "Frame" ) or Old[ a ]:IsA( "TextButton" ) then Old[ a ]:Destroy( ) end
+		if Obj:IsA( "Frame" ) or Obj:IsA( "TextButton" ) then Obj:Destroy( ) end
 		
 	end
 	
@@ -67,11 +65,9 @@ function Redraw( )
 		
 		if a:lower( ):find( Txt ) then
 			
-			local Base = script.Parent.ThemeFrame.Base:Clone( )
+			local Base = script.Base:Clone( )
 			
 			ThemeUtil.BindUpdate( Base.Title, { TextColor3 = "Primary_TextColor", BorderColor3 = "Secondary_BackgroundColor", BackgroundColor3 = "Secondary_BackgroundColor", BackgroundTransparency = "Secondary_BackgroundTransparency" } )
-			
-			Base.Visible = true
 			
 			Base.Name = a
 			
@@ -205,13 +201,15 @@ if script.Parent:FindFirstChild( "Toggle" ) then
 	
 	function ToggleGui( )
 		
-		if script.Parent.Open.Value and script.Parent.Parent:FindFirstChild( "KeybindGui" ) and script.Parent.Parent.KeybindGui.Open.Value then
+		if script.Parent.Open.Value and _G.OpenPxlGui then
 			
-			script.Parent.Parent.KeybindGui.Open.Value = false
+			_G.OpenPxlGui.Value = false
 			
 		end
 		
 		if script.Parent.Open.Value then
+			
+			_G.OpenPxlGui = script.Parent.Open
 			
 			if Invalid then Redraw( ) Invalid = nil end
 			
@@ -222,6 +220,8 @@ if script.Parent:FindFirstChild( "Toggle" ) then
 			ThemeUtil.BindUpdate( { script.Parent.Toggle, script.Parent.AltToggle }, { BackgroundColor3 = "Selection_Color3" } )
 			
 		else
+			
+			_G.OpenPxlGui = nil
 			
 			local Toggle = script.Parent.Toggle.Visible and script.Parent.Toggle or script.Parent.AltToggle
 			
