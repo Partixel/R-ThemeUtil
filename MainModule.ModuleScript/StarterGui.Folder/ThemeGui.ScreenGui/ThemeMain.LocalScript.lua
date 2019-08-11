@@ -1,8 +1,8 @@
-local ThemeUtil = require( game:GetService( "ReplicatedStorage" ):WaitForChild( "ThemeUtil" ) )
+local ThemeUtil = require( game:GetService( "ReplicatedStorage" ):WaitForChild( "ThemeUtil" ):WaitForChild( "ThemeUtil" ) )
 
 local TweenService = game:GetService( "TweenService" )
 
-local SaveTheme = game:GetService( "ReplicatedStorage" ):WaitForChild( "SaveTheme" )
+local ThemeRemote = game:GetService( "ReplicatedStorage" ):WaitForChild( "ThemeUtil" ):WaitForChild( "ThemeRemote" )
 
 ThemeUtil.BindUpdate( script.Parent.ThemeFrame, { BackgroundColor3 = "Primary_BackgroundColor", BackgroundTransparency = "Primary_BackgroundTransparency" } )
 
@@ -67,7 +67,7 @@ function Redraw( )
 			
 			local Base = script.Base:Clone( )
 			
-			ThemeUtil.BindUpdate( Base.Title, { TextColor3 = "Primary_TextColor", BorderColor3 = "Secondary_BackgroundColor", BackgroundColor3 = "Secondary_BackgroundColor", BackgroundTransparency = "Secondary_BackgroundTransparency" } )
+			ThemeUtil.BindUpdate( Base.Title, { TextColor3 = "Primary_TextColor", BorderColor3 = ThemeUtil.CurrentBase == a and "Selection_Color3" or "Secondary_BackgroundColor", BackgroundColor3 = "Secondary_BackgroundColor", BackgroundTransparency = "Secondary_BackgroundTransparency" } )
 			
 			Base.Name = a
 			
@@ -91,13 +91,17 @@ function Redraw( )
 					
 					CurBase.Example.Selected.BackgroundColor3 = ThemeUtil.BaseThemes[ ThemeUtil.CurrentBase ].Negative_Color3
 					
+					ThemeUtil.BindUpdate( CurBase.Title, { BorderColor3 = "Secondary_BackgroundColor" } )
+					
 				end
 				
 				Base.Example.Selected.BackgroundColor3 = b.Positive_Color3
 				
+				ThemeUtil.BindUpdate( Base.Title, { BorderColor3 = "Selection_Color3" } )
+				
 				ThemeUtil.SetBaseTheme( a )
 				
-				SaveTheme:FireServer( a )
+				ThemeRemote:FireServer( a )
 				
 				Invalid = true
 				
@@ -167,13 +171,16 @@ script.Parent.ThemeFrame.Search:GetPropertyChangedSignal( "Text" ):Connect( func
 	
 end )
 
-local SavedBase = game:GetService( "ReplicatedStorage" ):WaitForChild( "GetTheme" ):InvokeServer( )
+ThemeRemote.OnClientEvent:Connect( function ( NewBase )
+	
+	if NewBase and ThemeUtil.BaseThemes[ NewBase ] then
+		
+		ThemeUtil.SetBaseTheme( NewBase )
+		
+	end
+	
+end )
 
-if SavedBase and ThemeUtil.BaseThemes[ SavedBase ] then
-	
-	ThemeUtil.SetBaseTheme( SavedBase )
-	
-end
 
 if script.Parent:FindFirstChild( "Toggle" ) then
 	
@@ -269,9 +276,9 @@ if script.Parent:FindFirstChild( "Toggle" ) then
 		
 	end
 	
-	local Core = game:GetService( "ReplicatedStorage" ):WaitForChild( "Core", 5 )
+	local S2 = game:GetService( "ReplicatedStorage" ):WaitForChild( "S2", 5 )
 	
-	if Core then
+	if S2 then
 		
 		script.Parent.AltToggle.Visible = false
 		

@@ -1,53 +1,45 @@
-local Players = game:GetService( "Players" )
+local LoaderModule = require( game:GetService( "ServerStorage" ):FindFirstChild( "LoaderModule" ) and game:GetService( "ServerStorage" ).LoaderModule:FindFirstChild( "MainModule" ) or 03593768376 )( "ThemeUtil" )
 
-require( script.ThemeUtil )
+require( script.ReplicatedStorage.ThemeUtil )
 
-script.ThemeUtil.Parent = game:GetService( "ReplicatedStorage" )
+LoaderModule( script:WaitForChild( "StarterGui" ) )
 
-if not game:GetService( "StarterGui" ):FindFirstChild( "ThemeGui" ) then
-	
-	local Gui = script.ThemeGui
-	
-	Gui.Parent = game:GetService( "StarterGui" )
-	
-	for _, Plr in ipairs( game:GetService( "Players" ):GetPlayers( ) ) do
-		
-		if Plr:FindFirstChild( "PlayerGui" ) and Plr.Character and not Plr.PlayerGui:FindFirstChild( Gui.Name ) then
-			
-			Gui:Clone( ).Parent = Plr.PlayerGui
-			
-		end
-		
-	end
-	
-end
+LoaderModule( script:WaitForChild( "ReplicatedStorage" ) )
 
 local DataStore2 = require( 1936396537 )
 
 DataStore2.Combine( "PartixelsVeryCoolMasterKey", "Theme1" )
 
-local GetTheme = Instance.new( "RemoteFunction" )
+local ThemeRemote = Instance.new( "RemoteEvent" )
 
-GetTheme.Name = "GetTheme"
+ThemeRemote.Name = "ThemeRemote"
 
-function GetTheme.OnServerInvoke( Plr )
-	
-	return DataStore2( "Theme1", Plr ):Get( )
-	
-end
-
-GetTheme.Parent = game:GetService( "ReplicatedStorage" )
-
-local SaveTheme = Instance.new( "RemoteEvent" )
-
-SaveTheme.Name = "SaveTheme"
-
-SaveTheme.OnServerEvent:Connect( function ( Plr, Theme )
+ThemeRemote.OnServerEvent:Connect( function ( Plr, Theme )
 	
 	DataStore2( "Theme1", Plr ):Set( Theme )
 	
 end )
 
-SaveTheme.Parent = game:GetService( "ReplicatedStorage" )
+ThemeRemote.Parent = game:GetService( "ReplicatedStorage" ).ThemeUtil
+
+function HandlePlr( Plr )
+	
+	local Theme = DataStore2( "Theme1", Plr ):Get( )
+	
+	if Theme then
+		
+		ThemeRemote:FireClient( Plr, Theme )
+		
+	end
+	
+end
+
+for _, Plr in ipairs( game:GetService( "Players" ):GetPlayers( ) ) do
+	
+	HandlePlr( Plr )
+	
+end
+
+game.Players.PlayerAdded:Connect( HandlePlr )
 
 return nil
