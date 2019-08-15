@@ -588,7 +588,7 @@ end
 
 if false then
 	
-	spawn( function ( )
+	coroutine.wrap( function ( )
 		
 		while wait( ) do
 			
@@ -616,7 +616,7 @@ if false then
 			
 		end
 		
-	end )
+	end )( )
 	
 end
 
