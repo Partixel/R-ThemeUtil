@@ -394,11 +394,13 @@ function ThemeUtil.SetBaseTheme( NewBase )
 	
 	if not ThemeUtil.BaseThemes[ NewBase ] then warn( "ThemeUtil - " .. NewBase .. " is not a valid base theme\n" .. debug.traceback( ) ) end
 	
-	ThemeUtil.BaseThemeChanged:Fire( NewBase )
+	local OldBase = ThemeUtil.CurrentBase
 	
 	ThemeUtil.CurrentBase = NewBase
 	
 	setmetatable( ThemeUtil.Theme, { __index = ThemeUtil.BaseThemes[ NewBase ] } )
+	
+	ThemeUtil.BaseThemeChanged:Fire( OldBase )
 	
 	ThemeUtil.UpdateAll( )
 	
