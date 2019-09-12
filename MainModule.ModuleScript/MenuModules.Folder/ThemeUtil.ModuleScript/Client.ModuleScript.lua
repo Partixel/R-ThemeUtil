@@ -203,7 +203,7 @@ return {
 			
 			ThemeUtil.BindUpdate( { Gui.Toggle, Gui.AltToggle }, { BackgroundColor3 = Gui.Open.Value and "Selection_Color3" or "Primary_BackgroundColor", TextTransparency = "Primary_TextTransparency", TextStrokeColor3 = "Primary_TextColor", Primary_BackgroundTransparency = HandleTransparency } )
 			
-			function ToggleGui( )
+			local function ToggleGui( )
 				
 				if Gui.Open.Value and _G.OpenPxlGui then
 					
