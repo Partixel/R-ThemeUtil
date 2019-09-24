@@ -556,6 +556,8 @@ function ThemeUtil.AddBaseTheme( Module )
 	
 end
 
+script:WaitForChild( "Light" )
+
 script.ChildAdded:Connect( ThemeUtil.AddBaseTheme )
 
 for _, Obj in ipairs( script:GetChildren( ) ) do
@@ -585,40 +587,6 @@ CustomThemes.ChildAdded:Connect( ThemeUtil.AddBaseTheme )
 for _, Obj in ipairs( CustomThemes:GetChildren( ) ) do
 	
 	ThemeUtil.AddBaseTheme( Obj )
-	
-end
-
-if false then
-	
-	coroutine.wrap( function ( )
-		
-		while wait( ) do
-			
-			local H, S, V = tick( ) * 10 % 255, 127.5 + math.sin( tick( ) * 0.3 ) * 127.5, 127.5 + math.sin( tick( ) * 0.5 + 10 ) * 127.5
-			
-			ThemeUtil.UpdateThemeFor( "Primary_BackgroundColor", Color3.fromHSV( H / 255, S / 255, V / 255 ) )
-			
-			ThemeUtil.UpdateThemeFor( "Primary_BackgroundTransparency", math.sin( tick( ) * 0.3 ) )
-			
-			ThemeUtil.UpdateThemeFor( "Secondary_BackgroundColor", Color3.fromHSV( H / 255, S / 255, ( V > 122.5 and ( V - 75 ) or ( V + 36 ) ) / 255 ) )
-			
-			if V / 255 > 0.75 then
-				
-				ThemeUtil.UpdateThemeFor( "Inverted_BackgroundColor", Color3.fromRGB( H / 255, S / 255, ( V - 255 ) / 255 ) )
-				
-				ThemeUtil.UpdateThemeFor( "Primary_TextColor", Color3.fromRGB( 46, 46, 46 ) )
-				
-			else
-				
-				ThemeUtil.UpdateThemeFor( "Inverted_BackgroundColor", Color3.fromRGB( H / 255, S / 255, ( V - 255 ) / 255 ) )
-				
-				ThemeUtil.UpdateThemeFor( "Primary_TextColor", Color3.fromRGB( 255, 255, 255 ) )
-				
-			end
-			
-		end
-		
-	end )( )
 	
 end
 
