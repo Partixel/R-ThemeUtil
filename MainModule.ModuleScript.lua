@@ -4,8 +4,6 @@ require( game:GetService( "ServerStorage" ):FindFirstChild( "MenuLib" ) and game
 
 require( script.ReplicatedStorage.ThemeUtil )
 
-LoaderModule( script:WaitForChild( "StarterGui" ) )
-
 LoaderModule( script:WaitForChild( "ReplicatedStorage" ) )
 
 LoaderModule( script:WaitForChild( "MenuModules" ), game:GetService( "ServerStorage" ):WaitForChild( "MenuModules" ) )
