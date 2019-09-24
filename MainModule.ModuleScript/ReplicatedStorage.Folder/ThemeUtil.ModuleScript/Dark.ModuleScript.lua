@@ -18,9 +18,7 @@ return {
 		
 		Secondary_TextColor = Color3.fromRGB( 170, 170, 170 ),
 		
-		Positive_Color3 = Color3.fromRGB( 0, 150, 0 ),
-		
-		Selection_Color3 = Color3.fromRGB( 0, 100, 255 )
+		Positive_Color3 = Color3.fromRGB( 0, 150, 0 )
 		
 	}
 	
