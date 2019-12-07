@@ -24,7 +24,7 @@ return {
 		
 		Positive_Color3 = Color3.fromRGB( 100, 180, 100 ),
 		
-		Negative_Color3 = Color3.fromRGB( 190, 0, 0 ),
+		Negative_Color3 = Color3.fromRGB( 210, 10, 10 ),
 		
 		Progress_Color3 = Color3.fromRGB( 255, 255, 50 ),
 		
