@@ -1,4 +1,4 @@
-local ThemeUtil = { }
+local ThemeUtil = {}
 
 ThemeUtil.BaseThemeChanged = Instance.new( "BindableEvent" )
 
@@ -89,8 +89,6 @@ function ThemeUtil.BindUpdate( Obj, PropKeys )
 				end
 				
 			else
-				
-				
 				
 				for _, Prop in ipairs( type( Props ) == "table" and Props or { Props } ) do
 					
