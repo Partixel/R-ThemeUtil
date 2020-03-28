@@ -64,44 +64,32 @@ return {
 			end,
 			Redraw = function(self)
 				for _, Obj in ipairs(self.Tab.ScrollingFrame:GetChildren()) do
-					if Obj:IsA("Frame") or Obj:IsA("TextButton") then Obj:Destroy() end
+					if Obj:IsA("Frame") or Obj:IsA("TextButton") then
+						Obj:Destroy()
+					end
 				end
 				
-				local Txt = self.Tab.Search.Text:lower():gsub(".", EscapePatterns)
-				
-				local Categories = {}
+				local Txt, Categories = self.Tab.Search.Text:lower():gsub(".", EscapePatterns), {}
 				
 				for a, b in pairs(ThemeUtil.BaseThemes) do
-					
 					if a:lower():find(Txt) then
-						
 						local Base = script.Base:Clone()
-						
-						ThemeUtil.BindUpdate(Base.Title, {TextColor3 = "Primary_TextColor", BorderColor3 = ThemeUtil.CurrentBase == a and "Selection_Color3" or "Secondary_BackgroundColor", BackgroundColor3 = "Secondary_BackgroundColor", BackgroundTransparency = "Secondary_BackgroundTransparency"})
-						
 						Base.Name = a
-						
 						Base.Title.Text = a
-						
 						Base.LayoutOrder = ThemeUtil.CurrentBase == a and 1 or 2
-						
 						Base.Example.Selected.BackgroundColor3 = ThemeUtil.CurrentBase == a and b.Positive_Color3 or b.Negative_Color3
-						
 						Base.Example.BackgroundColor3 = b.Primary_BackgroundColor
-						
 						Base.Example.BackgroundTransparency = b.Primary_BackgroundTransparency
 						
-						Base.MouseButton1Click:Connect(function ()
-							
-							if ThemeUtil.CurrentBase == a then return end
-							
-							ThemeUtil.SetBaseTheme(a)
-							
-							self.Options.Remote:FireServer(a)
-							
-							self:Invalidate(false)
-							
+						Base.MouseButton1Click:Connect(function()
+							if ThemeUtil.CurrentBase ~= a then
+								ThemeUtil.SetBaseTheme(a)
+								self.Options.Remote:FireServer(a)
+								self:Invalidate(false)
+							end
 						end)
+						
+						ThemeUtil.BindUpdate(Base.Title, {TextColor3 = "Primary_TextColor", BorderColor3 = ThemeUtil.CurrentBase == a and "Selection_Color3" or "Secondary_BackgroundColor", BackgroundColor3 = "Secondary_BackgroundColor", BackgroundTransparency = "Secondary_BackgroundTransparency"})
 						
 						Base.Parent = self.Tab.ScrollingFrame
 					end
