@@ -1,6 +1,5 @@
 return {
 	Inherits = "Light",
-	Default = 1,
 	Theme = {
 		Primary_BackgroundColor = Color3.fromRGB(46, 46, 46),
 		Inverted_BackgroundColor = Color3.fromRGB(255, 255, 255),
