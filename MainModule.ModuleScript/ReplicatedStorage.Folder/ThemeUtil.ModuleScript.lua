@@ -9,6 +9,7 @@ local ThemeUtil = {
 	CurrentBase = nil,
 }
 
+local CoroutineErrorHandling = require(game:GetService("ReplicatedStorage"):FindFirstChild("CoroutineErrorHandling"))
 
 ---- Theming related functions ----
 
@@ -63,35 +64,35 @@ function ThemeUtil.BindUpdate(Obj, PropKeys)
 		BoundUpdates[Obj] = PropKeys
 		
 		coroutine.wrap(function()
-			local Ran, Error = pcall(PropKeys)
+			local Ran, Error = xpcall(PropKeys, CoroutineErrorHandling.ErrorHandler)
 			if not Ran then
-				warn("ThemeUtil - Bound Update " .. Obj .. " errored for the initial call\n" .. Error .. "\n" .. debug.traceback())
+				warn("ThemeUtil - Bound Update " .. Obj .. " errored for the initial call\n" .. CoroutineErrorHandling.GetError(Error))
 			end
 		end)()
 	else
 		ObjBoundUpdates[Obj] = ObjBoundUpdates[Obj] or {}
 		for Props, Keys in pairs(PropKeys) do
 			if type(Keys) == "function" then
-				local Ran, Theme = pcall(ThemeUtil.GetThemeFor, Props)
+				local Ran, Theme = xpcall(ThemeUtil.GetThemeFor, CoroutineErrorHandling.ErrorHandler, Props)
 				if Ran then
 					ObjBoundUpdates[Obj][Props] = Keys
 					
 					coroutine.wrap(function()
-						local Ran, Error = pcall(Keys, Obj, Theme)
+						local Ran, Error = xpcall(Keys, CoroutineErrorHandling.ErrorHandler, Obj, Theme)
 						if not Ran then
-							warn("ThemeUtil - Object Bound Update " .. Obj:GetFullName() .. " errored for the initial call for the key '" .. Props .. "'\n" .. Error .. "\n" .. debug.traceback())
+							warn("ThemeUtil - Object Bound Update " .. Obj:GetFullName() .. " errored for the initial call for the key '" .. Props .. "'\n" .. CoroutineErrorHandling.GetError(Error))
 						end
 					end)()
 				else
-					warn("ThemeUtil - Couldn't bind object update for " .. Obj:GetFullName () .. " because " .. Props .. " is not a valid theme key\n" .. debug.traceback())
+					warn("ThemeUtil - Couldn't bind object update for " .. Obj:GetFullName () .. " because " .. Props .. " is not a valid theme key\n" .. CoroutineErrorHandling.GetError(Theme))
 				end
 			else
 				for _, Prop in ipairs(type(Props) == "table" and Props or {Props}) do
 					ObjBoundUpdates[Obj][Prop] = Keys
 					
-					local Ran, Error = pcall(SetPropThemeFor, Obj, Prop, Keys)
+					local Ran, Error = xpcall(SetPropThemeFor, CoroutineErrorHandling.ErrorHandler, Obj, Prop, Keys)
 					if not Ran then
-						warn("ThemeUtil - Object Bound Update " .. Obj:GetFullName() .. " errored for the initial call for the property '" .. Prop .. "'\n" .. Error .. "\n" .. debug.traceback())
+						warn("ThemeUtil - Object Bound Update " .. Obj:GetFullName() .. " errored for the initial call for the property '" .. Prop .. "'\n" .. CoroutineErrorHandling.GetError(Error))
 					end
 				end
 			end
@@ -131,9 +132,9 @@ function ThemeUtil.UpdateThemeFor(Key, Value)
 	
 	for a, b in pairs(BoundUpdates) do
 		coroutine.wrap(function()
-			local Ran, Error = pcall(b, Key, Value)
+			local Ran, Error = xpcall(b, CoroutineErrorHandling.ErrorHandler, Key, Value)
 			if not Ran then
-				warn("ThemeUtil - Bound Update " .. a .. " errored " .. ( Key and ("for '" .. Key .. "'\n" .. Error .. "\n") or "when updating all themes\n") .. debug.traceback())
+				warn("ThemeUtil - Bound Update " .. a .. " errored " .. ( Key and ("for '" .. Key .. "'\n" .. CoroutineErrorHandling.GetError(Error) .. "\n") or "when updating all themes\n"))
 			end
 		end)()
 	end
@@ -143,16 +144,16 @@ function ThemeUtil.UpdateThemeFor(Key, Value)
 			if type(Keys) == "function" then
 				if not Key or ThemeUtil.IsPriorityKey(Prop, Key)then 
 					coroutine.wrap(function()
-						local Ran, Error = pcall(Keys, Obj, Value or ThemeUtil.GetThemeFor(Prop))
+						local Ran, Error = xpcall(Keys, CoroutineErrorHandling.ErrorHandler, Obj, Value or ThemeUtil.GetThemeFor(Prop))
 						if not Ran then
-							warn("ThemeUtil - Object Bound Update " .. Obj:GetFullName() .. " errored for the initial call for the key '" .. (Key or Prop) .. "'\n" .. Error .. "\n" .. debug.traceback())
+							warn("ThemeUtil - Object Bound Update " .. Obj:GetFullName() .. " errored for the initial call for the key '" .. (Key or Prop) .. "'\n" .. CoroutineErrorHandling.GetError(Error))
 						end
 					end)()
 				end
 			elseif not Key or ThemeUtil.IsPriorityKey(Keys, Key) then
-				local Ran, Error = pcall(Value and SetProp or SetPropThemeFor, Obj, Prop, Value or Keys)
+				local Ran, Error = xpcall(Value and SetProp or SetPropThemeFor, CoroutineErrorHandling.ErrorHandler, Obj, Prop, Value or Keys)
 				if not Ran then
-					warn("ThemeUtil - Object Bound Update " .. Obj:GetFullName() .. " errored for the initial call for the property '" .. Prop .. "'\n" .. Error .. "\n" .. debug.traceback())
+					warn("ThemeUtil - Object Bound Update " .. Obj:GetFullName() .. " errored for the initial call for the property '" .. Prop .. "'\n" .. CoroutineErrorHandling.GetError(Error))
 				end
 			end
 		end
