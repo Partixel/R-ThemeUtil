@@ -134,7 +134,7 @@ function ThemeUtil.UpdateThemeFor(Key, Value)
 		coroutine.wrap(function()
 			local Ran, Error = xpcall(b, CoroutineErrorHandling.ErrorHandler, Key, Value)
 			if not Ran then
-				warn("ThemeUtil - Bound Update " .. a .. " errored " .. ( Key and ("for '" .. Key .. "'\n" .. CoroutineErrorHandling.GetError(Error) .. "\n") or "when updating all themes\n"))
+				warn("ThemeUtil - Bound Update " .. a .. " errored " .. (Key and ("for '" .. Key .. "'\n" .. CoroutineErrorHandling.GetError(Error) .. "\n") or "when updating all themes\n"))
 			end
 		end)()
 	end
